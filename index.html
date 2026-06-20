@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◊ FallRelay · sovereign WebLLM bridge for Claude Code</title>
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiRmFsbFJlbGF5Iiwic2hvcnRfbmFtZSI6IkZhbGxSZWxheSIsInN0YXJ0X3VybCI6Ii4vIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzBiMGEwZiIsInRoZW1lX2NvbG9yIjoiIzhiMWExYSJ9">
+<style>
+:root{--ox:#8b1a1a;--brass:#b8974a;--cream:#c4bfb2;--void:#0b0a0f;--void2:#13121a;--amber:#ff8c00;--green:#4ade80;--red:#ef4444;--line:#2a2730}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--void);color:var(--cream);font-family:'DM Sans',system-ui,sans-serif;min-height:100vh;font-size:14px}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.008) 0,rgba(255,255,255,.008) 1px,transparent 1px,transparent 4px);pointer-events:none;z-index:1}
+header{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;background:var(--void2);position:relative;z-index:2}
+.glyph{color:var(--ox);font-size:24px;font-family:Georgia,serif}
+.brand{font-family:'Libre Baskerville',Georgia,serif;font-size:20px;color:var(--cream)}
+.brand span{color:var(--amber)}
+.ver{color:var(--brass);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;margin-left:8px}
+.spacer{flex:1}
+.badge{padding:4px 10px;border:1px solid var(--line);border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brass);text-transform:uppercase;letter-spacing:.06em}
+.badge.live{color:var(--green);border-color:var(--green)}
+.badge.warn{color:var(--amber);border-color:var(--amber)}
+.badge.err{color:var(--red);border-color:var(--red)}
+main{max-width:1100px;margin:0 auto;padding:28px 24px;position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.panel{background:var(--void2);border:1px solid var(--line);border-radius:4px;padding:20px}
+.panel h2{font-family:'Libre Baskerville',Georgia,serif;font-size:15px;color:var(--brass);margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(180,167,134,.08)}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--brass);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.row .v{color:var(--cream);font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right}
+.progress{background:rgba(180,167,134,.08);border-radius:3px;height:6px;overflow:hidden;margin-top:6px}
+.progress-fill{background:var(--ox);height:100%;transition:width .3s}
+button{background:var(--ox);color:var(--cream);border:none;padding:8px 16px;border-radius:3px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+button:hover{background:#a52424}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:transparent;border:1px solid var(--brass);color:var(--brass)}
+button.secondary:hover{background:var(--brass);color:var(--void)}
+select,input{background:var(--void);color:var(--cream);border:1px solid var(--line);padding:6px 10px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:11px;width:100%}
+label{display:block;color:var(--brass);font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;margin-top:10px}
+.log{max-height:300px;overflow-y:auto;font-family:'IBM Plex Mono',monospace;font-size:10px}
+.log-entry{padding:6px 0;border-bottom:1px solid rgba(180,167,134,.08);display:flex;gap:10px}
+.log-entry .ts{color:var(--brass);min-width:60px}
+.log-entry.req .ts{color:var(--amber)}
+.log-entry.res .ts{color:var(--green)}
+.log-entry.err .ts{color:var(--red)}
+.log-entry .body{flex:1;word-break:break-word}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi-tile{background:var(--void2);border:1px solid var(--line);border-radius:4px;padding:14px;text-align:center}
+.kpi-tile .v{font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--amber)}
+.kpi-tile .k{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--brass);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+footer{padding:20px;text-align:center;color:var(--brass);font-family:'IBM Plex Mono',monospace;font-size:10px;border-top:1px solid var(--line);margin-top:30px;position:relative;z-index:2}
+.disclaimer{background:rgba(139,26,26,.08);border-left:3px solid var(--ox);padding:14px 18px;margin-bottom:24px;font-size:12px;line-height:1.5;color:var(--cream)}
+@media(max-width:880px){main{grid-template-columns:1fr;padding:18px}.kpi{grid-template-columns:repeat(2,1fr)}}
+.test-area{margin-top:12px}
+.test-area textarea{background:var(--void);color:var(--cream);border:1px solid var(--line);padding:8px;border-radius:3px;width:100%;min-height:60px;font-family:'IBM Plex Mono',monospace;font-size:11px;resize:vertical}
+.test-out{margin-top:8px;padding:10px;background:var(--void);border:1px solid var(--line);border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:11px;min-height:40px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<header>
+  <span class="glyph">◊</span>
+  <span class="brand">FallRelay <span>v1</span></span>
+  <span class="ver">· prime 1009 · webllm → mcp</span>
+  <span class="spacer"></span>
+  <span class="badge" id="modelBadge">model: loading</span>
+  <span class="badge" id="wsBadge">ws: disconnected</span>
+  <span class="badge" id="konomiBadge">◊ sovereign</span>
+</header>
+
+<main>
+  <div class="panel" style="grid-column:1/-1">
+    <div class="disclaimer">
+      <strong>What this is:</strong> a sovereign single-file WebLLM host. Pair it with the bundled MCP server (<code>mcp-server/server.mjs</code>) and Claude Code can call this tab via <code>local_complete</code> instead of spawning Sonnet subagents — burning <em>zero</em> Claude API tokens. The model runs in your browser's WebGPU, weights cached in IndexedDB after first download (~1.2GB Llama 3.2 1B / ~2.4GB Phi-3-mini). Keep this tab open while coding.
+    </div>
+    <div class="kpi">
+      <div class="kpi-tile"><div class="v" id="kpiCalls">0</div><div class="k">total calls</div></div>
+      <div class="kpi-tile"><div class="v" id="kpiTokens">0</div><div class="k">tokens generated</div></div>
+      <div class="kpi-tile"><div class="v" id="kpiSaved">£0.00</div><div class="k">est sonnet cost saved</div></div>
+      <div class="kpi-tile"><div class="v" id="kpiLatency">—</div><div class="k">avg latency ms</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>◐ Model + Bridge</h2>
+    <label>Model</label>
+    <select id="modelSelect">
+      <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" selected>Llama 3.2 1B Instruct · q4f16_1 (~1.2GB, fast)</option>
+      <option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">Llama 3.2 3B Instruct · q4f16_1 (~2.3GB, balanced)</option>
+      <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi 3.5 mini · q4f16_1 (~2.4GB, balanced)</option>
+      <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen 2.5 1.5B Instruct · q4f16_1 (~1.5GB)</option>
+      <option value="Qwen2.5-3B-Instruct-q4f16_1-MLC">Qwen 2.5 3B Instruct · q4f16_1 (~2.5GB)</option>
+      <option value="gemma-2-2b-it-q4f16_1-MLC">Gemma 2 2B Instruct · q4f16_1 (~1.8GB)</option>
+    </select>
+    <label>MCP bridge port</label>
+    <input id="bridgePort" type="number" value="17345" min="1024" max="65535">
+    <label>Bridge URL (read-only)</label>
+    <input id="bridgeUrl" readonly>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button id="btnLoad">⟲ load / reload model</button>
+      <button id="btnConnect" class="secondary">connect bridge</button>
+      <button id="btnDisconnect" class="secondary" style="display:none">disconnect</button>
+    </div>
+    <label style="margin-top:14px">Model load progress</label>
+    <div class="progress"><div class="progress-fill" id="loadProgress" style="width:0%"></div></div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brass);margin-top:6px" id="loadStatus">awaiting load…</div>
+  </div>
+
+  <div class="panel">
+    <h2>◯ State</h2>
+    <div class="row"><span class="k">model</span><span class="v" id="stateModel">—</span></div>
+    <div class="row"><span class="k">webgpu</span><span class="v" id="stateGpu">probing…</span></div>
+    <div class="row"><span class="k">bridge</span><span class="v" id="stateBridge">disconnected</span></div>
+    <div class="row"><span class="k">queue depth</span><span class="v" id="stateQueue">0</span></div>
+    <div class="row"><span class="k">active call</span><span class="v" id="stateActive">idle</span></div>
+    <div class="row"><span class="k">last call ts</span><span class="v" id="stateLastTs">—</span></div>
+    <div class="row"><span class="k">errors (session)</span><span class="v" id="stateErrors">0</span></div>
+    <div class="row"><span class="k">konomi prime</span><span class="v">1009</span></div>
+    <div class="row"><span class="k">cache</span><span class="v" id="stateCache">indexeddb</span></div>
+  </div>
+
+  <div class="panel" style="grid-column:1/-1">
+    <h2>△ Quick test (no bridge needed)</h2>
+    <div class="test-area">
+      <textarea id="testPrompt" placeholder="Type a prompt to test the loaded model locally…">Write a haiku about sovereign software.</textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <button id="btnTest" disabled>▶ run test</button>
+        <label style="margin:0">max tokens</label>
+        <input id="testMax" type="number" value="200" min="1" max="2048" style="width:80px">
+        <label style="margin:0">temp</label>
+        <input id="testTemp" type="number" value="0.7" min="0" max="2" step="0.1" style="width:60px">
+      </div>
+      <div class="test-out" id="testOut">—</div>
+    </div>
+  </div>
+
+  <div class="panel" style="grid-column:1/-1">
+    <h2>◯ Call log</h2>
+    <div class="log" id="callLog"><div class="log-entry"><span class="ts">—</span><span class="body">no calls yet · open this tab + run the MCP server + tell Claude to use local_complete</span></div></div>
+  </div>
+</main>
+
+<footer>
+  ◊ <strong>FallRelay v1.0.0</strong> · sovereign WebLLM bridge for Claude Code · prime 1009 · MIT licence ·
+  paired with <code>mcp-server/server.mjs</code> · <a href="https://github.com/sjgant80-hub/fallrelay" style="color:var(--brass)">source</a>
+</footer>
+
+<script>
+// ============ KONOMI shim · sovereign tier · prime 1009 ============
+window.KONOMI = { tier: 'sovereign', prime: 1009, tool: 'fallrelay', version: '1.0.0',
+  fold: 510510, spine: [2,3,5,7,11,13,17], firmCheck: () => true };
+
+// ============ fall-signal mesh ============
+try {
+  const bc = new BroadcastChannel('fall-signal');
+  bc.postMessage({ tool:'fallrelay', prime:1009, version:'1.0.0', status:'online', ts:Date.now() });
+} catch (e) { /* no BC = no estate */ }
+</script>
+
+<script type="module">
+const TOOLNAME='fallrelay', VERSION='1.0.0', PRIME=1009;
+const $ = (s) => document.querySelector(s);
+const state = {
+  engine: null, modelId: null, ws: null,
+  calls: 0, tokens: 0, errors: 0, latencies: [],
+  queue: [], active: null, callLog: []
+};
+
+// ---------- estimate sonnet cost saved ----------
+// Claude Sonnet 4.5: ~$3 input / $15 output per 1M tokens
+const SONNET_OUTPUT_USD_PER_TOKEN = 15 / 1_000_000;
+const USD_TO_GBP = 0.79;
+function updateKPIs() {
+  $('#kpiCalls').textContent = state.calls;
+  $('#kpiTokens').textContent = state.tokens.toLocaleString();
+  const usd = state.tokens * SONNET_OUTPUT_USD_PER_TOKEN;
+  $('#kpiSaved').textContent = '£' + (usd * USD_TO_GBP).toFixed(2);
+  if (state.latencies.length) {
+    const avg = state.latencies.reduce((a,b)=>a+b,0) / state.latencies.length;
+    $('#kpiLatency').textContent = Math.round(avg);
+  }
+  $('#stateModel').textContent = state.modelId || '—';
+  $('#stateQueue').textContent = state.queue.length;
+  $('#stateActive').textContent = state.active ? state.active.id || 'busy' : 'idle';
+  $('#stateErrors').textContent = state.errors;
+  $('#stateLastTs').textContent = state.lastTs ? new Date(state.lastTs).toLocaleTimeString() : '—';
+}
+
+function log(kind, body) {
+  const ts = new Date().toLocaleTimeString();
+  state.callLog.unshift({ kind, ts, body });
+  if (state.callLog.length > 200) state.callLog.pop();
+  const el = $('#callLog');
+  el.innerHTML = state.callLog.map(e =>
+    `<div class="log-entry ${e.kind}"><span class="ts">${e.ts}</span><span class="body">${escapeHtml(e.body)}</span></div>`
+  ).join('');
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ---------- WebGPU probe ----------
+(async () => {
+  if (!('gpu' in navigator)) { $('#stateGpu').textContent = 'unavailable (need Chrome 113+ or Edge 113+)'; $('#stateGpu').style.color='var(--red)'; return; }
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) { $('#stateGpu').textContent = 'no adapter'; $('#stateGpu').style.color='var(--amber)'; return; }
+    $('#stateGpu').textContent = 'ready';
+    $('#stateGpu').style.color = 'var(--green)';
+  } catch (e) { $('#stateGpu').textContent = 'error: ' + e.message; $('#stateGpu').style.color='var(--red)'; }
+})();
+
+// ---------- bridge URL ----------
+function refreshBridgeUrl() {
+  const port = $('#bridgePort').value || 17345;
+  $('#bridgeUrl').value = `ws://localhost:${port}/relay`;
+}
+$('#bridgePort').addEventListener('input', refreshBridgeUrl);
+refreshBridgeUrl();
+
+// ---------- WebLLM loader ----------
+let webllm = null;
+async function loadWebLLM() {
+  if (webllm) return webllm;
+  const mod = await import('https://esm.run/@mlc-ai/web-llm@0.2.79');
+  webllm = mod;
+  return mod;
+}
+
+$('#btnLoad').addEventListener('click', async () => {
+  const modelId = $('#modelSelect').value;
+  $('#btnLoad').disabled = true;
+  $('#btnTest').disabled = true;
+  $('#modelBadge').textContent = 'model: loading…';
+  $('#modelBadge').className = 'badge warn';
+  $('#loadStatus').textContent = 'importing webllm…';
+  try {
+    const m = await loadWebLLM();
+    $('#loadStatus').textContent = 'creating engine…';
+    state.engine = await m.CreateMLCEngine(modelId, {
+      initProgressCallback: (p) => {
+        const pct = Math.round((p.progress || 0) * 100);
+        $('#loadProgress').style.width = pct + '%';
+        $('#loadStatus').textContent = p.text || `loading ${pct}%`;
+      }
+    });
+    state.modelId = modelId;
+    $('#modelBadge').textContent = 'model: ' + modelId.split('-').slice(0,3).join('-');
+    $('#modelBadge').className = 'badge live';
+    $('#loadStatus').textContent = 'ready · ' + modelId;
+    $('#loadProgress').style.width = '100%';
+    $('#btnTest').disabled = false;
+    log('res', `model loaded: ${modelId}`);
+  } catch (e) {
+    $('#modelBadge').textContent = 'model: error';
+    $('#modelBadge').className = 'badge err';
+    $('#loadStatus').textContent = 'error: ' + e.message;
+    log('err', 'model load failed: ' + e.message);
+    state.errors++;
+  } finally {
+    $('#btnLoad').disabled = false;
+    updateKPIs();
+  }
+});
+
+// ---------- core inference ----------
+async function complete({ messages, prompt, max_tokens=512, temperature=0.7, system=null }) {
+  if (!state.engine) throw new Error('model not loaded');
+  let msgs = messages;
+  if (!msgs && prompt) {
+    msgs = [];
+    if (system) msgs.push({ role:'system', content:system });
+    msgs.push({ role:'user', content:prompt });
+  }
+  if (!msgs || !msgs.length) throw new Error('no messages/prompt');
+  const t0 = performance.now();
+  const reply = await state.engine.chat.completions.create({
+    messages: msgs,
+    max_tokens: Math.min(max_tokens, 4096),
+    temperature: Math.max(0, Math.min(2, temperature)),
+    stream: false
+  });
+  const latency = performance.now() - t0;
+  state.latencies.push(latency);
+  if (state.latencies.length > 50) state.latencies.shift();
+  const text = reply.choices?.[0]?.message?.content || '';
+  const usage = reply.usage || { completion_tokens: text.length / 4 | 0 };
+  state.calls++;
+  state.tokens += (usage.completion_tokens || 0);
+  state.lastTs = Date.now();
+  updateKPIs();
+  return { text, usage, latency_ms: Math.round(latency), model: state.modelId };
+}
+
+// ---------- quick test ----------
+$('#btnTest').addEventListener('click', async () => {
+  $('#btnTest').disabled = true;
+  $('#testOut').textContent = 'thinking…';
+  try {
+    const r = await complete({ prompt: $('#testPrompt').value, max_tokens: +$('#testMax').value, temperature: +$('#testTemp').value });
+    $('#testOut').textContent = r.text + `\n\n— ${r.latency_ms}ms · ${r.usage.completion_tokens || '?'} tokens`;
+    log('res', 'test: ' + r.text.slice(0, 80) + (r.text.length > 80 ? '…' : ''));
+  } catch (e) {
+    $('#testOut').textContent = 'error: ' + e.message;
+    state.errors++;
+    log('err', 'test: ' + e.message);
+  } finally {
+    $('#btnTest').disabled = false;
+  }
+});
+
+// ---------- WebSocket bridge to MCP server ----------
+$('#btnConnect').addEventListener('click', () => {
+  if (!state.engine) { alert('load model first'); return; }
+  const url = $('#bridgeUrl').value;
+  log('req', 'connecting bridge: ' + url);
+  try {
+    const ws = new WebSocket(url);
+    ws.onopen = () => {
+      state.ws = ws;
+      $('#wsBadge').textContent = 'ws: connected';
+      $('#wsBadge').className = 'badge live';
+      $('#stateBridge').textContent = 'connected';
+      $('#stateBridge').style.color = 'var(--green)';
+      $('#btnConnect').style.display = 'none';
+      $('#btnDisconnect').style.display = 'inline-block';
+      ws.send(JSON.stringify({ kind:'hello', tool:'fallrelay', model: state.modelId, version: VERSION }));
+      log('res', 'bridge connected');
+    };
+    ws.onmessage = async (e) => {
+      let req;
+      try { req = JSON.parse(e.data); } catch { return; }
+      if (req.kind !== 'request') return;
+      state.queue.push(req);
+      updateKPIs();
+      state.active = req;
+      log('req', `${req.id || '?'}: ${(req.prompt || req.messages?.[req.messages.length-1]?.content || '').slice(0,80)}`);
+      try {
+        const r = await complete(req);
+        ws.send(JSON.stringify({ kind:'response', id: req.id, ok:true, ...r }));
+        log('res', `${req.id || '?'}: ${r.usage.completion_tokens || '?'}t · ${r.latency_ms}ms`);
+      } catch (err) {
+        ws.send(JSON.stringify({ kind:'response', id: req.id, ok:false, error: err.message }));
+        state.errors++;
+        log('err', `${req.id || '?'}: ${err.message}`);
+      } finally {
+        state.queue.shift();
+        state.active = null;
+        updateKPIs();
+      }
+    };
+    ws.onerror = () => { log('err', 'bridge ws error'); };
+    ws.onclose = () => {
+      state.ws = null;
+      $('#wsBadge').textContent = 'ws: disconnected';
+      $('#wsBadge').className = 'badge';
+      $('#stateBridge').textContent = 'disconnected';
+      $('#stateBridge').style.color = '';
+      $('#btnConnect').style.display = 'inline-block';
+      $('#btnDisconnect').style.display = 'none';
+      log('res', 'bridge disconnected');
+    };
+  } catch (e) {
+    log('err', 'connect failed: ' + e.message);
+  }
+});
+$('#btnDisconnect').addEventListener('click', () => { state.ws?.close(); });
+
+// ---------- expose API for debugging ----------
+window.FALLRELAY = { state, complete, VERSION, PRIME, TOOLNAME };
+
+updateKPIs();
+</script>
+</body>
+</html>

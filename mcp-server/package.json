@@ -1,0 +1,22 @@
+{
+  "name": "fallrelay-mcp",
+  "version": "1.0.0",
+  "description": "FallRelay MCP server — bridges Claude Code tool calls to a sovereign WebLLM browser tab. Saves Sonnet API tokens.",
+  "type": "module",
+  "main": "server.mjs",
+  "bin": {
+    "fallrelay-mcp": "./server.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "keywords": ["mcp", "webllm", "claude-code", "sovereign", "fallrelay"]
+}

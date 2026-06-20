@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "fallrelay": {
+      "command": "node",
+      "args": ["C:/Users/sjgan/Downloads/fallrelay/mcp-server/server.mjs"],
+      "env": {
+        "FALLRELAY_PORT": "17345",
+        "FALLRELAY_TIMEOUT_MS": "120000"
+      }
+    }
+  }
+}
